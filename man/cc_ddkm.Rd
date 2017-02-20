@@ -1,26 +1,28 @@
 \name{cc_ddkm}
 \alias{cc_ddkm}
-\title{Diagonal Double K-means}
-\description{Co-clustering via a diagonal reordering.}
-\usage{cc_ddkm(g,envrdata,zi_ddkm,wj_ddkm,delta,transfrm,maxiter,debug)}
+\alias{C_ddkm}
+\title{DDKM}
+\description{Implementation with sparsity of the method which aims at a diagonal reordering.}
+\usage{cc_ddkm(g,envrdata,zi,wj,delta,transfrm,maxiter,debug)}
 \arguments{
   \item{g}{number of clusters for rows and columns.}
   \item{envrdata}{environment with data.}
-  \item{zi_ddkm}{row clusters.}
-  \item{wj_ddkm}{column clusters.}
+  \item{zi}{row clusters.}
+  \item{wj}{column clusters.}
   \item{delta}{common constant value per block.}
   \item{transfrm}{transformation of the data (0:none, 1:binarization, 2:tf-idf, 3:tf-idf+rows normalization).}
   \item{maxiter}{maximum number of iterations.}
   \item{debug}{flag for debug, if equal to 1 shows some informations to user.}
 }
 \value{
-  The function returns a vector with the value of the objective function per iterations, and zi, wj which are the estimated cluster labels.
+  The function alters the parameters zi and wj. It returns a vector with the value of the objective function per iterations, and zi, wj which are the estimated cluster labels.
 }
 \examples{
   library(Rcoclust);
   
   #load data
   data(data_news4);
+  envrdata=get_envrdata(A_ijx,lbs,name,1);
   
   #retrieve matrix size and number of classes
   n=envrdata$n;

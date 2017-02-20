@@ -1,113 +1,98 @@
-#.RcoclustEnv <- new.env(parent = emptyenv());
-#.onLoad <- function(libname, pkgname){}
+#/*==========================================================================
+#  Copyright (C) R. Priam 
+#Date Version 0.1.0 : 2017-01-31
+#Date last update   : 2017-02-19
+#==========================================================================
+#  This file is part of Rcoclust.
+#
+#Rcoclust is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+#
+#Rcoclust is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License
+#along with Rcoclust.  If not, see <http://www.gnu.org/licenses/>.
+#========================================================================== */
 
-.noGenerics <- TRUE
+cc_coclus <- function(g,envrdata,zi,wj,transfrm,maxiter,debug) {
+  .check_dataI(envrdata);
+  #.check_dataJ(envrdata);
+  .check_params_coclus(g,envrdata,zi,wj,transfrm,maxiter,debug);
 
-.onUnload <- function(libpath)
-  library.dynam.unload("Rcoclust", libpath)
-
-# -------------------------------------------------------------
-
-.check_data <- function(envrdata) {
-  if (exists("envrdata"))
-    if (!is.null("envrdata"))
-      if (!is.null("envrdata$n") && !is.null("envrdata$d") && 
-          !is.null("envrdata$Ais_byrow") && !is.null("envrdata$Ajs_byrow") && 
-          !is.null("envrdata$Ajs_bycol") && !is.null("envrdata$Axs_bycol") && 
-          !is.null("envrdata$Axs_byrow") && !is.null("envrdata$Ais_bycol") &&
-          !is.null("envrdata$nnzi") && !is.null("envrdata$nnzj") &&
-          !is.null("envrdata$nnz") &&  !is.null("envrdata$name"))
-        if (length(envrdata$Ais_byrow)==envrdata$nnz && length(envrdata$Ajs_byrow)==envrdata$nnz && 
-            length(envrdata$Ajs_bycol)==envrdata$nnz && length(envrdata$Axs_bycol)==envrdata$nnz && 
-            length(envrdata$Axs_byrow)==envrdata$nnz && length(envrdata$Ais_bycol)==envrdata$nnz)
-          if (max(envrdata$Ais_byrow)<envrdata$n && min(envrdata$Ais_byrow)>=0 &&
-              max(envrdata$Ais_bycol)<envrdata$n && min(envrdata$Ais_bycol)>=0 &&
-              max(envrdata$Ajs_byrow)<envrdata$d && min(envrdata$Ajs_byrow)>=0 &&
-              max(envrdata$Ajs_bycol)<envrdata$d && min(envrdata$Ajs_bycol)>=0 &&
-              min(envrdata$Axs_byrow)>=0 && min(envrdata$Axs_bycol)>=0)
-              if ((sum(envrdata$nnzi)==envrdata$nnz) && (sum(envrdata$nnzj)==envrdata$nnz))
-               {return (1);} else { return (0); }
+  ans1 <- .Call("C_coclus",
+                as.integer(envrdata$Ais_byrow), as.integer(envrdata$Ajs_byrow),
+                as.numeric(envrdata$Axs_byrow), as.integer(envrdata$nnzi), 
+                as.integer(envrdata$nnzj), as.integer(zi), as.integer(wj), 
+                as.numeric(c(envrdata$n, envrdata$d, g, envrdata$nnz, transfrm, maxiter, debug,1E-7)),
+                PACKAGE="Rcoclust");
+  
+  return (list(obj=ans1, zi=zi, wj=wj));
 }
 
-# -------------------------------------------------------------
+cc_ddkm <- function(g,envrdata,zi,wj,delta,transfrm,maxiter,debug) {
+  .check_dataI(envrdata);
+  .check_dataJ(envrdata);
+  .check_params_ddkm(g,envrdata,zi,wj,delta,transfrm,maxiter,debug);
+  
+  ans1 <- .Call("C_ddkm",
+                as.integer(envrdata$Ais_byrow), as.integer(envrdata$Ajs_byrow),
+                as.numeric(envrdata$Axs_byrow), as.integer(envrdata$nnzi), 
+                as.integer(envrdata$Ais_bycol), as.integer(envrdata$Ajs_bycol),
+                as.numeric(envrdata$Axs_bycol), as.integer(envrdata$nnzj), 
+                as.integer(zi), as.integer(wj),
+                as.numeric(c(envrdata$n, envrdata$d, g, envrdata$nnz, delta, transfrm, maxiter, debug,1E-7)),
+                PACKAGE="Rcoclust");
+  
+  return (list(obj=ans1, zi=zi, wj=wj));
+}
 
 randp <- function(envrdata,dimr,sgr,vect_Ar,transfrm,debug) {
-  if (.check_data(envrdata) && dimr>=1 && sgr>0 &&  
-      transfrm%in%0:3 && debug%in%0:1 && !is.null(vect_Ar) && 
-      length(as.numeric(vect_Ar))==envrdata$n*dimr) { 
-    ans1 <- .Call("RPMAT", 
-        as.integer(envrdata$Ais_byrow), as.integer(envrdata$Ajs_byrow),
-        as.numeric(envrdata$Axs_byrow), as.integer(envrdata$nnzi), as.integer(envrdata$nnzj), 
-        as.numeric(vect_Ar),
-        as.numeric(c(envrdata$n,envrdata$d,envrdata$nnz,dimr,sgr,0,transfrm,debug)));
-    return (1);
-  }
-  return (0);
+  .check_dataI(envrdata);
+  .check_params_randp(envrdata,dimr,sgr,vect_Ar,transfrm,debug);
+  
+  ans1 <- .Call("C_randomp",
+                as.integer(envrdata$Ais_byrow), as.integer(envrdata$Ajs_byrow),
+                as.numeric(envrdata$Axs_byrow), as.integer(envrdata$nnzi), as.integer(envrdata$nnzj),
+                as.numeric(vect_Ar),
+                as.numeric(c(envrdata$n,envrdata$d,envrdata$nnz,dimr,sgr,0,transfrm,debug)),
+                PACKAGE="Rcoclust");
 }
 
-# -------------------------------------------------------------
-
-cc_coclus <- function(g,envrdata,zi_coclus,wj_coclus,transfrm,maxiter,debug) {
-  if (.check_data(envrdata) && g%in%2:envrdata$n &&
-      transfrm%in%0:3 && maxiter%in%1:300 && debug%in%0:1 &&   
-      !is.null(zi_coclus) && length(as.numeric(zi_coclus))==envrdata$n &&
-      !is.null(wj_coclus) &&  length(as.numeric(wj_coclus))==envrdata$d) {  
-    ans1 <- .Call("COCLUS",
-                  as.integer(envrdata$Ais_byrow), as.integer(envrdata$Ajs_byrow),
-                  as.numeric(envrdata$Axs_byrow), as.integer(envrdata$nnzi), 
-                  as.integer(envrdata$Ais_bycol), as.integer(envrdata$Ajs_bycol),
-                  as.numeric(envrdata$Axs_bycol), as.integer(envrdata$nnzj), 
-                  as.integer(zi_coclus), as.integer(wj_coclus), 
-                  as.numeric(c(envrdata$n, envrdata$d, g, envrdata$nnz, transfrm, maxiter, debug,1E-7)));
-    
-    return (list(obj=ans1, zi=zi_coclus, wj=wj_coclus));
+get_envrdata <- function(A_ijx,lbs,name,datacol) { 
+  .check_params_get_envrdata(A_ijx,lbs,name,datacol);
+  
+  n    = max(A_ijx[,1])+1;
+  d    = max(A_ijx[,2])+1;
+  nnzi = as.numeric(table(sort(A_ijx[,1])));
+  nnzj = as.numeric(table(sort(A_ijx[,2])));
+  nnz  = nrow(A_ijx);
+  
+  if (datacol==1) {
+    tA_ijx = data.frame(Ais_bycol=rep(0:(n-1),nnzi),
+                        Ajs_bycol=A_ijx[,2],
+                        Axs_bycol=A_ijx[,3]);
+    tA_ijx = tA_ijx[order(tA_ijx$Ajs_bycol),];
   }
-  return (NULL);
+  
+  envrdata = new.env(parent=emptyenv());
+  assign("name",name,envrdata);#
+  assign("n",n,envrdata);#
+  assign("d",d,envrdata);#
+  assign("Ais_byrow", A_ijx[,1],envrdata);#0,...,d-1
+  assign("Ajs_byrow", A_ijx[,2],envrdata);#
+  assign("Axs_byrow", A_ijx[,3],envrdata);#
+  if (datacol==1) assign("Ais_bycol",tA_ijx[,1],envrdata);#0,...,d-1
+  if (datacol==1) assign("Ajs_bycol",tA_ijx[,2],envrdata);#
+  if (datacol==1) assign("Axs_bycol",tA_ijx[,3],envrdata);#
+  assign("nnzi",nnzi,envrdata);#
+  assign("nnzj",nnzj,envrdata);#
+  assign("nnz",nrow(A_ijx),envrdata);#
+  assign("lbs",lbs,envrdata);#
+  
+  return(envrdata);
 }
-
-# -------------------------------------------------------------
-
-cc_fddkm <- function(g,envrdata,zi_fddkm,wj_fddkm,vect_cik_fddkm,vect_wjk_fddkm,alpha,beta,delta,transfrm,maxiter,debug) {
-  if (.check_data(envrdata) && g%in%2:envrdata$n && alpha>1 && beta>1 && 
-      (delta==-1 || (delta>=min(envrdata$Axs_byrow) && delta<=max(envrdata$Axs_byrow))) &&
-      transfrm%in%0:3 && maxiter%in%1:300 && debug%in%0:1 &&   
-      !is.null(zi_fddkm) && length(as.numeric(zi_fddkm))==envrdata$n &&
-      !is.null(wj_fddkm) &&  length(as.numeric(wj_fddkm))==envrdata$d &&
-      !is.null(vect_cik_fddkm) &&  length(as.numeric(vect_cik_fddkm))==envrdata$n*g &&
-      !is.null(vect_wjk_fddkm) &&  length(as.numeric(vect_wjk_fddkm))==envrdata$d*g ) {
-      ans1 <- .Call("FDDKM",
-                 as.integer(envrdata$Ais_byrow), as.integer(envrdata$Ajs_byrow), 
-                 as.numeric(envrdata$Axs_byrow), as.integer(envrdata$nnzi), 
-                 as.integer(envrdata$Ais_bycol), as.integer(envrdata$Ajs_bycol), 
-                 as.numeric(envrdata$Axs_bycol), as.integer(envrdata$nnzj), 
-                 as.numeric(vect_cik_fddkm), as.numeric(vect_wjk_fddkm),
-                 as.integer(zi_fddkm), as.integer(wj_fddkm),
-                 as.numeric(c(envrdata$n, envrdata$d, g, envrdata$nnz, alpha, beta, delta, transfrm, maxiter, debug,1E-7)));
-      
-      return (list(obj=ans1, zi=zi_fddkm, wj=wj_fddkm));
-  }
-  return (NULL);
-}
-
-# -------------------------------------------------------------
-
-cc_ddkm <- function(g,envrdata,zi_ddkm,wj_ddkm,delta,transfrm,maxiter,debug) {
-  if (.check_data(envrdata) && g%in%2:envrdata$n &&
-      (delta==-1 || (delta>=min(envrdata$Axs_byrow) && delta<=max(envrdata$Axs_byrow))) &&
-      transfrm%in%0:3 && maxiter%in%1:300 && debug%in%0:1 &&   
-      !is.null(zi_ddkm) && length(as.numeric(zi_ddkm))==envrdata$n &&
-      !is.null(wj_ddkm) &&  length(as.numeric(wj_ddkm))==envrdata$d) {
-    ans1 <- .Call("DDKM",
-                  as.integer(envrdata$Ais_byrow), as.integer(envrdata$Ajs_byrow),
-                  as.numeric(envrdata$Axs_byrow), as.integer(envrdata$nnzi), 
-                  as.integer(envrdata$Ais_bycol), as.integer(envrdata$Ajs_bycol),
-                  as.numeric(envrdata$Axs_bycol), as.integer(envrdata$nnzj), 
-                  as.integer(zi_ddkm), as.integer(wj_ddkm),
-                  as.numeric(c(envrdata$n, envrdata$d, g, envrdata$nnz, delta, transfrm, maxiter, debug,1E-7)));
-    
-    return (list(obj=ans1, zi=zi_ddkm, wj=wj_ddkm));
-  }
-  return (NULL);
-}
-
-# -------------------------------------------------------------

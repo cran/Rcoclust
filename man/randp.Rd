@@ -1,7 +1,8 @@
 \name{randp}
 \alias{randp}
+\alias{C_randomp}
 \title{Random projection for sparse matrix}
-\description{Reduced matrix after right multiplication with a generated Gaussian random matrix.}
+\description{Implementation of the reduction of matrix via a right multiplication with a generated Gaussian random matrix. The data vectors for the columns are not required for the input parameters in envrdata.}
 \usage{randp(envrdata,dimr,sgr,vect_Ar,transfrm,debug)}
 \arguments{
   \item{envrdata}{environment with data.}
@@ -12,13 +13,14 @@
   \item{debug}{flag for debug, if equal to 1 shows some informations to user.}
 }
 \value{
-  The function alters the matrix in vect_Ar. It returns 0 if the function parameters are detected as erroneous, otherwise 1.
+  The function alters the matrix in vect_Ar with the result of the reduction.
 }
 \examples{
   library(Rcoclust);
   
   #load data
   data(data_cstr);
+  envrdata=get_envrdata(A_ijx,lbs,name,0);
   
   #retrieve matrix size and number of classes
   n=envrdata$n;

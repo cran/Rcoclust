@@ -1,2 +1,2 @@
 exportPattern("^[^\\.]")
-useDynLib("Rcoclust")
+useDynLib(Rcoclust, .registration=TRUE)
